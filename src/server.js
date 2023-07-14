@@ -16,6 +16,7 @@ import http from 'http'
 //     - Método HTTP 
 //     - URL
 
+
 // GET, POST, PUT, PATCH, DELETE
 
 // GET --> Buscar um recurso do back-end
