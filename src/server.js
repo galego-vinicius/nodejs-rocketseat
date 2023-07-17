@@ -1,4 +1,5 @@
 import http from 'http'
+import { json } from './middlewares/json.js'
 
 // CommonJS => require
 // ESModules => import/export
@@ -41,28 +42,11 @@ const users = []
 const server = http.createServer(async (req, res) => {
     const { method, url } = req
 
-// __________________________________________________________________________________________________
-    // Leitura de Streams --> Ler todo o corpo da requisição
-    
-    const buffers = []
-
-    for await (const chunk of req) {
-        buffers.push(chunk)
-    }
-
-//____________________________________________________________________________________________________
-// Transforma o corpo em um objeto JavaScript (um tipo primitivo do JS)
-
-    try {
-    req.body = JSON.parse(Buffer.concat(buffers).toString())
-    } catch {
-        req.body = null
-    }
+    await json(req, res)
 
 
     if (method == 'GET' && url == '/users'){
         return res
-        .setHeader('Content-type', 'application/json')
         .end(JSON.stringify(users))
     }
 
