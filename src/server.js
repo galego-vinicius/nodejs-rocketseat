@@ -1,5 +1,7 @@
 import http from 'http'
 import { json } from './middlewares/json.js'
+import { Database } from './databases.js'
+import {randomUUID} from 'node:crypto'
 
 // CommonJS => require
 // ESModules => import/export
@@ -37,7 +39,7 @@ import { json } from './middlewares/json.js'
 
 //HTTP Status Code
 
-const users = []
+const database = new Database
 
 const server = http.createServer(async (req, res) => {
     const { method, url } = req
@@ -46,8 +48,9 @@ const server = http.createServer(async (req, res) => {
 
 
     if (method == 'GET' && url == '/users'){
-        return res
-        .end(JSON.stringify(users))
+            const users = database.select('users')
+
+        return res.end(JSON.stringify(users))
     }
 
 //_________________________________________________________________________
@@ -57,11 +60,13 @@ const server = http.createServer(async (req, res) => {
         const { name, email } = req.body
 
 
-        users.push({
-            id: 1,
+        const user = {
+            id: randomUUID(),
             name,
             email,
-        })
+        }
+
+        database.insert('users', user)
 
         return res.writeHead(201).end()
     }
