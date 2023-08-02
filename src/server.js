@@ -1,7 +1,6 @@
-import http from 'http'
+import http from 'node:http'
 import { json } from './middlewares/json.js'
-import { Database } from './databases.js'
-import {randomUUID} from 'node:crypto'
+import { routes } from './routes.js'
 
 // CommonJS => require
 // ESModules => import/export
@@ -39,40 +38,34 @@ import {randomUUID} from 'node:crypto'
 
 //HTTP Status Code
 
-const database = new Database
+// Query Paremeters: quando precisar ter uma ulr que ela é statefull (utilizada para filtros, paginação, não-obrigatorios)
+//      http://localhost:3333/users?userId=1
+
+// Route Parameters: identificação de recursos
+//      GET http://localhost:3333/users/1 --> colocar usuario no ID 1
+//      REMOVE GET http://localhost:3333/users/1 --apagar usuario do ID 1
+
+// Request Body: Envio de Informações de um formulario (ex: insomnia) --> através do método HTTPs
+//      POST http://localhost:3333/users
+
 
 const server = http.createServer(async (req, res) => {
     const { method, url } = req
 
     await json(req, res)
 
+    const route = routes.find(route => {
+        return route.method == method && route.path.test(url)
+    })
 
-    if (method == 'GET' && url == '/users'){
-            const users = database.select('users')
+    if (route) {
+        const routeParams = req.url.match(route.path)
 
-        return res.end(JSON.stringify(users))
+        return route.handler(req, res)
     }
-
-//_________________________________________________________________________
-// Dados que serão utilizados na criação do usuario
-
-    if (method == 'POST' && url == '/users'){
-        const { name, email } = req.body
-
-
-        const user = {
-            id: randomUUID(),
-            name,
-            email,
-        }
-
-        database.insert('users', user)
-
-        return res.writeHead(201).end()
-    }
-
 
     return res.writeHead(404).end()
+
 })
 
 server.listen(3333)
